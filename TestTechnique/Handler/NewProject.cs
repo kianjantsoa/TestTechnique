@@ -7,8 +7,8 @@ namespace TestTechnique.Handler;
 
 public class NewProject
 {
-    public class Request : ProjectDTO , IRequest<bool>{}
-    public class Handler : IRequestHandler<Request, bool>
+    public class Request : ProjectDTO , IRequest<string>{}
+    public class Handler : IRequestHandler<Request, string>
     {
         private readonly PostgresContext _context;
         private readonly IMapper _mapper;
@@ -17,13 +17,21 @@ public class NewProject
             _mapper = mapper;
             _context = context;
         }
-        public async Task<bool> Handle(Request request, CancellationToken cancellationToken)
+        public async Task<string> Handle(Request request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(_context);
-            _context.Projets.Add(_mapper.Map<Project>(request));
-            _context.SaveChanges();
-            return true;
+            try
+            {
+                var newItem = _mapper.Map<Project>(request);
+                _context.Projets.Add(newItem);
+                _context.SaveChanges();
+                return request.Uuid;
+            }
+            catch(Exception ex)
+            {
+                throw;
+            }
         }
     }
 }
